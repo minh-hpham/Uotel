@@ -1,0 +1,163 @@
+package cs5530;
+import java.awt.List;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.Stack;
+
+public class Statistic {
+	public Statistic() {
+	}
+
+	public String mostPopular(String m, Statement stmt) {
+		/*
+		 * the list of the m (say m = 5) most popular THs (in terms of total
+		 * visits) for each category
+		 */
+		String categorySql = "select distinct category from TH";
+		StringBuilder output = new StringBuilder();
+		ResultSet rs = null;
+		ResultSet rs2 = null;
+		try {
+			rs = stmt.executeQuery(categorySql);
+			Stack<String> list = new Stack<String>();
+			while(rs.next())
+				list.push(rs.getString(1));
+			output.append("Most popular housing for every category:\n");
+			while (!list.isEmpty()) {
+				String category = list.pop();
+				
+				String mostPopularInThisCategory = String.format(
+						"SELECT t.name FROM TH t, Visit v where t.category='%s' and t.hid=v.hid group by t.name order by count(v.hid) DESC limit %s",
+						category, m);
+				rs2 = stmt.executeQuery(mostPopularInThisCategory);
+				if(rs2.next()){
+					output.append("\t");
+					output.append(category);
+					output.append("<br>"); // \n
+					output.append(rs2.getString(1));
+					output.append("<br>");
+				}
+				while (rs2.next()) {
+					output.append(rs2.getString(1));
+					output.append("<br>");
+				}
+			}
+			output.append("<br>");
+			rs.close();
+			rs2.close();
+		} catch (Exception e) {
+			System.out.println("cannot execute the query");
+		} finally {
+			try {
+				if (rs != null && !rs.isClosed())
+					rs.close();
+				if (rs2 != null && !rs2.isClosed())
+					rs2.close();
+			} catch (Exception e) {
+				System.out.println("cannot close resultset");
+			}
+		}
+		return output.toString();
+	}
+
+	public String mostExpensive(String m, Statement stmt) {
+		/*
+		 * the list of m most expensive THs (defined by the average cost per person of all visits to a TH) for each category
+		 */
+		String categorySql = "select distinct category from TH";
+		StringBuilder output = new StringBuilder();
+		ResultSet rs = null;
+		ResultSet rs2 = null;
+		try {
+			rs = stmt.executeQuery(categorySql);
+			Stack<String> list = new Stack<String>();
+			while(rs.next())
+				list.push(rs.getString(1));
+			output.append("Most expansive housing for every category:\n");
+			while (!list.isEmpty()) {
+				String category = list.pop();
+				String mostExpansiveInThisCategory = String.format(
+						"SELECT t.name, SUM(v.cost)/SUM(v.people) as cost_per_one FROM TH t, Visit v where t.category='%s' and t.hid=v.hid group by t.name order by cost_per_one DESC limit %s",
+						category, m);
+				rs2 = stmt.executeQuery(mostExpansiveInThisCategory);
+				if(rs2.next()){
+					output.append("\t");
+					output.append(category);
+					output.append("<br>");
+					output.append(rs2.getString(1));
+					output.append("<br>");
+				}
+				while (rs2.next()) {
+					output.append(rs2.getString(1));
+					output.append("<br>");
+				}
+			}
+			output.append("<br>");
+			rs.close();
+			rs2.close();
+		} catch (Exception e) {
+			System.out.println("cannot execute the query");
+		} finally {
+			try {
+				if (rs != null && !rs.isClosed())
+					rs.close();
+				if (rs2 != null && !rs2.isClosed())
+					rs2.close();
+			} catch (Exception e) {
+				System.out.println("cannot close resultset");
+			}
+		}
+		return output.toString();
+	}
+
+	public String highlyRated(String m, Statement stmt) {
+		/*
+		 * the list of m highly rated PHs (defined by the average scores from all feedbacks a TH has received) for each category
+		 */
+		String categorySql = "select distinct category from TH";
+		StringBuilder output = new StringBuilder();
+		ResultSet rs = null;
+		ResultSet rs2 = null;
+		try {
+			rs = stmt.executeQuery(categorySql);
+			Stack<String> list = new Stack<String>();
+			while(rs.next())
+				list.push(rs.getString(1));
+			
+			output.append("Most highly rated housing for every category:\n");
+			while (list.isEmpty() == false) {
+				String category = list.pop();
+				String highlyRatedInThisCategory = String.format(
+						"SELECT t.name,AVG(v.score) as score FROM TH t, Feedback v where t.category='%s' and t.hid=v.hid group by t.name order by score DESC limit %s",
+						category, m);
+				rs2 = stmt.executeQuery(highlyRatedInThisCategory);
+				if(rs2.next()){
+					output.append("\t");
+					output.append(category);
+					output.append("<br>");
+					output.append(rs2.getString(1));
+					output.append("<br>");
+				}
+				while (rs2.next()) {
+					output.append(rs2.getString(1));
+					output.append("<br>");
+				}
+			}
+			output.append("\n");
+			rs.close();
+			rs2.close();
+		} catch (Exception e) {
+			System.out.println("cannot execute the query");
+		} finally {
+			try {
+				if (rs != null && !rs.isClosed())
+					rs.close();
+				if (rs2 != null && !rs2.isClosed())
+					rs2.close();
+			} catch (Exception e) {
+				System.out.println("cannot close resultset");
+			}
+		}
+		return output.toString();
+	}
+}
